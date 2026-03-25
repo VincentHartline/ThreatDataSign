@@ -206,7 +206,7 @@
    CONFIG — swap key here if you regenerate it
 ══════════════════════════════════════════════ */
 const CFG = {
-  AUTH_KEY:    'd33d0e03c574e30d94b50ac4f8c4585d923275068b904018',
+  AUTH_KEY:    'c0e90d3a1a122002aed56ce4755d3e0b5ce40be3aaa6ba31',
   REFRESH_MS:  60 * 60 * 1000,   // 1 hour
   ROLL_MIN_MS: 4000,              // slowest tick (ms) for rolling counter
   ROLL_MAX_MS: 14000,             // fastest tick (ms)
@@ -232,15 +232,15 @@ const S = {
 ══════════════════════════════════════════════ */
 const L = {
   ts: () => new Date().toISOString(),
-  i: (s, m, d)   => console.info (`[iT.Inc|${s}|${L.ts()}] ℹ️  ${m}`, ...(d !== undefined ? [d] : [])),
-  w: (s, m, d)   => console.warn (`[iT.Inc|${s}|${L.ts()}] ⚠️  ${m}`, ...(d !== undefined ? [d] : [])),
+  i: (s, m, d)   => console.log (`[iT.Inc|${s}|${L.ts()}] ℹ️  ${m}`, ...(d !== undefined ? [d] : [])),
+  w: (s, m, d)   => console.log (`[iT.Inc|${s}|${L.ts()}] ⚠️  ${m}`, ...(d !== undefined ? [d] : [])),
   e: (s, m, err, x) => {
     const r = { ts: L.ts(), src: s, msg: m, errMsg: err?.message ?? String(err), stack: err?.stack ?? 'none', extra: x ?? null };
-    console.error(`[iT.Inc|${s}|${r.ts}] ❌ ${m}`, '\nRecord:', r, '\nRaw:', err);
+    console.log(`[iT.Inc|${s}|${r.ts}] ❌ ${m}`, '\nRecord:', r, '\nRaw:', err);
     S.errors.push(r);
     return r;
   },
-  g: (l, fn) => { console.groupCollapsed(`[iT.Inc|${L.ts()}] ${l}`); fn(); console.groupEnd(); },
+  g: (l, fn) => { console.log(`[iT.Inc|${L.ts()}] ${l}`); fn(); ; },
 };
 
 /* ══════════════════════════════════════════════
@@ -294,26 +294,20 @@ function startRoller() {
 }
 
 /* ══════════════════════════════════════════════
-   FETCH: URLhaus recent URLs
-   POST https://urlhaus-api.abuse.ch/v1/urls/recent/
+   FETCH: URLhaus v2 — recent URLs (past 30 days)
+   GET https://urlhaus-api.abuse.ch/v2/files/exports/KEY/recent.json
+   Key is in the URL path — no custom headers, no CORS preflight.
 ══════════════════════════════════════════════ */
 async function fetchRecent() {
-  const url = 'https://urlhaus-api.abuse.ch/v1/urls/recent/';
-  L.i('URLhaus/recent', `Fetching ${url}`);
+  const url = `https://urlhaus-api.abuse.ch/v2/files/exports/${CFG.AUTH_KEY}/recent.json`;
+  L.i('URLhaus/recent', `Fetching v2 endpoint (key in URL path)`);
 
   let resp;
   try {
-    resp = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Auth-Key': CFG.AUTH_KEY,
-      },
-    });
+    resp = await fetch(url);
   } catch (netErr) {
-    L.e('URLhaus/recent', 'Network-level fetch() threw — offline or CORS preflight rejected', netErr, {
-      url,
-      hint: 'URLhaus lists CORS as supported with Auth-Key header. If this fails, the browser may be blocking the preflight for the custom Auth-Key header. Try serving from a real web server rather than file://.',
+    L.e('URLhaus/recent', 'Network-level fetch() threw', netErr, {
+      hint: 'GET with key in URL path — no preflight needed. If this fails check network connectivity or whether the key is valid.',
     });
     return;
   }
@@ -321,7 +315,7 @@ async function fetchRecent() {
   if (!resp.ok) {
     L.e('URLhaus/recent', `Non-2xx response`, new Error(`HTTP ${resp.status}`), {
       status: resp.status, statusText: resp.statusText,
-      headers: Object.fromEntries(resp.headers.entries()),
+      hint: resp.status === 401 ? 'Auth key may be invalid or not yet activated' : 'Server error',
     });
     return;
   }
@@ -332,6 +326,7 @@ async function fetchRecent() {
 
   L.i('URLhaus/recent', `Received ${raw.length} bytes`);
 
+  // v2 returns a JSON array directly, or possibly wrapped — handle both
   let data;
   try { data = JSON.parse(raw); }
   catch (parseErr) {
@@ -339,75 +334,74 @@ async function fetchRecent() {
     return;
   }
 
-  L.i('URLhaus/recent', 'Parsed OK', { query_status: data.query_status, urlCount: data.urls?.length });
+  // v2 may return array directly or { urls: [...] }
+  const urls = Array.isArray(data) ? data : (Array.isArray(data.urls) ? data.urls : null);
 
-  if (!Array.isArray(data.urls)) {
-    L.e('URLhaus/recent', 'data.urls not an array — API shape changed?', new Error('shape'), {
-      keys: Object.keys(data), sample: raw.slice(0, 300),
+  if (!urls) {
+    L.e('URLhaus/recent', 'Could not find URL array in response', new Error('shape'), {
+      type: typeof data,
+      isArray: Array.isArray(data),
+      keys: typeof data === 'object' ? Object.keys(data) : 'n/a',
+      first300: raw.slice(0, 300),
     });
     return;
   }
 
-  S.recentUrls  = data.urls;
-  S.urlsOnline  = data.urls.filter(u => u.url_status === 'online').length;
-  S.sinceLunch  = countSinceLunch(data.urls);
+  S.recentUrls  = urls;
+  S.urlsOnline  = urls.filter(u => (u.url_status || u.status) === 'online').length;
+  S.sinceLunch  = countSinceLunch(urls);
   S.lastFetchOk = true;
 
   L.i('URLhaus/recent', 'State updated', {
-    total:      data.urls.length,
-    online:     S.urlsOnline,
-    sinceLunch: S.sinceLunch,
-    cutoff:     lunchCutoff().toLocaleTimeString(),
-    sampleStatuses: [...new Set(data.urls.slice(0,10).map(u => u.url_status))],
+    total:       urls.length,
+    online:      S.urlsOnline,
+    sinceLunch:  S.sinceLunch,
+    cutoff:      lunchCutoff().toLocaleTimeString(),
+    sampleEntry: urls[0],
   });
 }
 
 /* ══════════════════════════════════════════════
-   FETCH: URLhaus global stats
-   POST https://urlhaus-api.abuse.ch/v1/
+   FETCH: URLhaus v2 — online/active URLs only
+   GET https://urlhaus-api.abuse.ch/v2/files/exports/KEY/online.json
+   Used to populate the "active right now" card and total count.
 ══════════════════════════════════════════════ */
 async function fetchStats() {
-  const url = 'https://urlhaus-api.abuse.ch/v1/';
-  L.i('URLhaus/stats', `Fetching ${url}`);
+  const url = `https://urlhaus-api.abuse.ch/v2/files/exports/${CFG.AUTH_KEY}/online.json`;
+  L.i('URLhaus/online', `Fetching active-only v2 export`);
 
   let resp;
   try {
-    resp = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Auth-Key': CFG.AUTH_KEY,
-      },
-    });
+    resp = await fetch(url);
   } catch (netErr) {
-    L.e('URLhaus/stats', 'Network fetch threw', netErr, { url });
+    L.e('URLhaus/online', 'Network fetch threw', netErr);
     return;
   }
 
   if (!resp.ok) {
-    L.w('URLhaus/stats', `HTTP ${resp.status} — skipping stats update`);
+    L.w('URLhaus/online', `HTTP ${resp.status} — skipping online count update`);
     return;
   }
 
+  let raw;
+  try { raw = await resp.text(); }
+  catch (e) { L.e('URLhaus/online', 'Failed to read body', e); return; }
+
   let data;
-  try { data = await resp.json(); }
-  catch (parseErr) { L.e('URLhaus/stats', 'JSON parse failed', parseErr); return; }
+  try { data = JSON.parse(raw); }
+  catch (e) { L.e('URLhaus/online', 'JSON parse failed', e, { first300: raw.slice(0,300) }); return; }
 
-  L.i('URLhaus/stats', 'Response', data);
-
-  if (typeof data.total_urls === 'number') {
-    S.urlsTotal = data.total_urls;
-    L.i('URLhaus/stats', `total_urls = ${data.total_urls}`);
-  } else if (typeof data.total_urls_online === 'number') {
-    // fallback field name
-    S.urlsTotal = data.total_urls_online;
-    L.i('URLhaus/stats', `total_urls_online (fallback) = ${data.total_urls_online}`);
-  } else {
-    L.w('URLhaus/stats', 'No recognized total field found', {
-      keys: Object.keys(data),
-      values: data,
-    });
+  const urls = Array.isArray(data) ? data : (Array.isArray(data.urls) ? data.urls : null);
+  if (!urls) {
+    L.w('URLhaus/online', 'Could not find URL array', { type: typeof data, first300: raw.slice(0,300) });
+    return;
   }
+
+  S.urlsTotal = urls.length;
+  // If we didn't get urlsOnline from recent feed, use this count directly
+  if (S.urlsOnline === null) S.urlsOnline = urls.length;
+
+  L.i('URLhaus/online', `Active URLs: ${urls.length}`, { sampleEntry: urls[0] });
 }
 
 /* ══════════════════════════════════════════════
