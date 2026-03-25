@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>iT.Inc</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: #07090f;
+    color: #e8f0ff;
+    font-family: 'Rajdhani', sans-serif;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 70px;
+    border-bottom: 1px solid rgba(59,158,255,0.15);
+    flex-shrink: 0;
+  }
+  .logo { font-size: 32px; font-weight: 700; }
+  .logo .it  { color: #3b9eff; }
+  .logo .dot, .logo .inc { color: #fff; }
+  .header-right {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: rgba(176,200,230,0.45);
+    text-align: right;
+    line-height: 1.8;
+  }
+  .header-right span { color: #e8f0ff; }
+
+  /* ── HERO ── */
+  .hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid rgba(59,158,255,0.12);
+    padding: 20px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 5%; right: 5%; height: 3px;
+    background: linear-gradient(90deg, transparent, #e03c3c, transparent);
+    box-shadow: 0 0 20px rgba(224,60,60,0.6);
+  }
+
+  .hero-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(13px, 1.5vw, 20px);
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    color: rgba(176,200,230,0.5);
+    margin-bottom: clamp(8px, 1.5vh, 20px);
+    text-align: center;
+  }
+  .hero-label em { color: #e03c3c; font-style: normal; }
+
+  .hero-number {
+    font-size: clamp(100px, 22vw, 280px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -4px;
+    color: #e03c3c;
+    text-shadow: 0 0 60px rgba(224,60,60,0.35), 0 0 120px rgba(224,60,60,0.15);
+    font-variant-numeric: tabular-nums;
+  }
+  @keyframes bump {
+    0%   { text-shadow: 0 0 60px rgba(224,60,60,0.35), 0 0 120px rgba(224,60,60,0.15); }
+    25%  { text-shadow: 0 0 90px rgba(224,60,60,0.75), 0 0 180px rgba(224,60,60,0.35); }
+    100% { text-shadow: 0 0 60px rgba(224,60,60,0.35), 0 0 120px rgba(224,60,60,0.15); }
+  }
+  .hero-number.flash { animation: bump 0.5s ease; }
+
+  .hero-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(10px, 0.9vw, 14px);
+    color: rgba(176,200,230,0.3);
+    letter-spacing: 1.5px;
+    margin-top: clamp(6px, 1vh, 14px);
+    text-align: center;
+  }
+
+  /* ── BOTTOM STATS ── */
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: rgba(59,158,255,0.1);
+    height: clamp(150px, 25vh, 230px);
+    flex-shrink: 0;
+  }
+  .stat {
+    background: #07090f;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 16px;
+    position: relative;
+  }
+  .stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 8%; right: 8%; height: 2px;
+  }
+  .stat.red::before    { background: #e03c3c; box-shadow: 0 0 12px rgba(224,60,60,0.5); }
+  .stat.yellow::before { background: #f0b429; box-shadow: 0 0 12px rgba(240,180,41,0.45); }
+
+  .stat-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(9px, 0.9vw, 13px);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: rgba(176,200,230,0.45);
+  }
+  .stat-value {
+    font-size: clamp(44px, 7.5vw, 100px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -1px;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat.red    .stat-value { color: #e03c3c; text-shadow: 0 0 28px rgba(224,60,60,0.25); }
+  .stat.yellow .stat-value { color: #f0b429; text-shadow: 0 0 28px rgba(240,180,41,0.2); }
+  .stat-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(8px, 0.7vw, 11px);
+    color: rgba(176,200,230,0.3);
+    letter-spacing: 1px;
+    text-align: center;
+  }
+
+  /* ── TICKER ── */
+  footer {
+    height: 46px;
+    border-top: 1px solid rgba(59,158,255,0.12);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .ticker-wrap { display: flex; white-space: nowrap; animation: ticker 22s linear infinite; }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .tick {
+    display: inline-block;
+    padding: 0 44px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(176,200,230,0.32);
+  }
+  .tick strong { color: rgba(59,158,255,0.65); font-weight: normal; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="it">iT</span><span class="dot">.</span><span class="inc">Inc</span></div>
+  <div class="header-right">
+    <div>LIVE THREAT INTELLIGENCE · URLhaus / abuse.ch</div>
+    <div><span id="clock">--:--:--</span> &nbsp;·&nbsp; NEXT REFRESH <span id="countdown">--:--</span></div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-label">New malware URLs reported globally <em>since you went to lunch</em></div>
+  <div class="hero-number" id="v-since">—</div>
+  <div class="hero-sub"    id="s-since">Connecting to URLhaus…</div>
+</div>
+
+<div class="stats">
+  <div class="stat red">
+    <div class="stat-label">Malware URLs Active Right Now</div>
+    <div class="stat-value" id="v-online">—</div>
+    <div class="stat-sub"   id="s-online">Loading…</div>
+  </div>
+  <div class="stat yellow">
+    <div class="stat-label">Total URLs in URLhaus Database</div>
+    <div class="stat-value" id="v-total">—</div>
+    <div class="stat-sub"   id="s-total">Loading…</div>
+  </div>
+</div>
+
+<footer>
+  <div class="ticker-wrap" id="ticker"></div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════
+   CONFIG — swap key here if you regenerate it
+══════════════════════════════════════════════ */
+const CFG = {
+  AUTH_KEY:    'd33d0e03c574e30d94b50ac4f8c4585d923275068b904018',
+  REFRESH_MS:  60 * 60 * 1000,   // 1 hour
+  ROLL_MIN_MS: 4000,              // slowest tick (ms) for rolling counter
+  ROLL_MAX_MS: 14000,             // fastest tick (ms)
+};
+
+/* ══════════════════════════════════════════════
+   INTERNAL STATE
+══════════════════════════════════════════════ */
+const S = {
+  recentUrls:    null,   // Array  — raw URLhaus recent feed
+  urlsOnline:    null,   // Number — status === 'online'
+  urlsTotal:     null,   // Number — all-time from stats endpoint
+  sinceLunch:    null,   // Number — urls added since 12:00 PM today
+  displaySince:  0,      // Number — what the big number shows right now
+  rollTimer:     null,   // setInterval handle
+  nextRefresh:   null,   // Date
+  lastFetchOk:   false,
+  errors:        [],
+};
+
+/* ══════════════════════════════════════════════
+   SILENT VERBOSE LOGGER
+══════════════════════════════════════════════ */
+const L = {
+  ts: () => new Date().toISOString(),
+  i: (s, m, d)   => console.info (`[iT.Inc|${s}|${L.ts()}] ℹ️  ${m}`, ...(d !== undefined ? [d] : [])),
+  w: (s, m, d)   => console.warn (`[iT.Inc|${s}|${L.ts()}] ⚠️  ${m}`, ...(d !== undefined ? [d] : [])),
+  e: (s, m, err, x) => {
+    const r = { ts: L.ts(), src: s, msg: m, errMsg: err?.message ?? String(err), stack: err?.stack ?? 'none', extra: x ?? null };
+    console.error(`[iT.Inc|${s}|${r.ts}] ❌ ${m}`, '\nRecord:', r, '\nRaw:', err);
+    S.errors.push(r);
+    return r;
+  },
+  g: (l, fn) => { console.groupCollapsed(`[iT.Inc|${L.ts()}] ${l}`); fn(); console.groupEnd(); },
+};
+
+/* ══════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════ */
+function lunchCutoff() {
+  const n = new Date();
+  const noon = new Date(n.getFullYear(), n.getMonth(), n.getDate(), 12, 0, 0);
+  // Before noon? Count from midnight instead so the number is never 0
+  return n < noon
+    ? new Date(n.getFullYear(), n.getMonth(), n.getDate(), 0, 0, 0)
+    : noon;
+}
+
+function countSinceLunch(urls) {
+  if (!Array.isArray(urls)) return 0;
+  const cutoff = lunchCutoff();
+  let count = 0;
+  for (const u of urls) {
+    if (!u.date_added) continue;
+    // URLhaus format: "2024-01-15 13:45:22 UTC"
+    const d = new Date(u.date_added.replace(' UTC','Z').replace(' ','T'));
+    if (!isNaN(d) && d >= cutoff) count++;
+  }
+  return count;
+}
+
+/* ══════════════════════════════════════════════
+   ROLLING COUNTER
+   Increments display once per estimated interval
+   so the number looks live between refreshes.
+══════════════════════════════════════════════ */
+function startRoller() {
+  if (S.rollTimer) clearInterval(S.rollTimer);
+
+  const msSinceLunch = Date.now() - lunchCutoff().getTime();
+  const base = Math.max(S.sinceLunch ?? 1, 1);
+  // avg ms between events based on real data
+  const msPerEvent = Math.min(CFG.ROLL_MAX_MS, Math.max(CFG.ROLL_MIN_MS, msSinceLunch / base));
+
+  L.i('Roller', `Rolling at 1 tick per ${Math.round(msPerEvent / 1000)}s (sinceLunch=${S.sinceLunch}, elapsed=${Math.round(msSinceLunch/60000)}min)`);
+
+  S.rollTimer = setInterval(() => {
+    S.displaySince++;
+    const el = document.getElementById('v-since');
+    el.textContent = S.displaySince.toLocaleString();
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.classList.add('flash');
+  }, msPerEvent);
+}
+
+/* ══════════════════════════════════════════════
+   FETCH: URLhaus recent URLs
+   POST https://urlhaus-api.abuse.ch/v1/urls/recent/
+══════════════════════════════════════════════ */
+async function fetchRecent() {
+  const url = 'https://urlhaus-api.abuse.ch/v1/urls/recent/';
+  L.i('URLhaus/recent', `Fetching ${url}`);
+
+  let resp;
+  try {
+    resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Auth-Key': CFG.AUTH_KEY,
+      },
+    });
+  } catch (netErr) {
+    L.e('URLhaus/recent', 'Network-level fetch() threw — offline or CORS preflight rejected', netErr, {
+      url,
+      hint: 'URLhaus lists CORS as supported with Auth-Key header. If this fails, the browser may be blocking the preflight for the custom Auth-Key header. Try serving from a real web server rather than file://.',
+    });
+    return;
+  }
+
+  if (!resp.ok) {
+    L.e('URLhaus/recent', `Non-2xx response`, new Error(`HTTP ${resp.status}`), {
+      status: resp.status, statusText: resp.statusText,
+      headers: Object.fromEntries(resp.headers.entries()),
+    });
+    return;
+  }
+
+  let raw;
+  try { raw = await resp.text(); }
+  catch (readErr) { L.e('URLhaus/recent', 'Failed to read body', readErr); return; }
+
+  L.i('URLhaus/recent', `Received ${raw.length} bytes`);
+
+  let data;
+  try { data = JSON.parse(raw); }
+  catch (parseErr) {
+    L.e('URLhaus/recent', 'JSON parse failed', parseErr, { first300: raw.slice(0, 300) });
+    return;
+  }
+
+  L.i('URLhaus/recent', 'Parsed OK', { query_status: data.query_status, urlCount: data.urls?.length });
+
+  if (!Array.isArray(data.urls)) {
+    L.e('URLhaus/recent', 'data.urls not an array — API shape changed?', new Error('shape'), {
+      keys: Object.keys(data), sample: raw.slice(0, 300),
+    });
+    return;
+  }
+
+  S.recentUrls  = data.urls;
+  S.urlsOnline  = data.urls.filter(u => u.url_status === 'online').length;
+  S.sinceLunch  = countSinceLunch(data.urls);
+  S.lastFetchOk = true;
+
+  L.i('URLhaus/recent', 'State updated', {
+    total:      data.urls.length,
+    online:     S.urlsOnline,
+    sinceLunch: S.sinceLunch,
+    cutoff:     lunchCutoff().toLocaleTimeString(),
+    sampleStatuses: [...new Set(data.urls.slice(0,10).map(u => u.url_status))],
+  });
+}
+
+/* ══════════════════════════════════════════════
+   FETCH: URLhaus global stats
+   POST https://urlhaus-api.abuse.ch/v1/
+══════════════════════════════════════════════ */
+async function fetchStats() {
+  const url = 'https://urlhaus-api.abuse.ch/v1/';
+  L.i('URLhaus/stats', `Fetching ${url}`);
+
+  let resp;
+  try {
+    resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Auth-Key': CFG.AUTH_KEY,
+      },
+    });
+  } catch (netErr) {
+    L.e('URLhaus/stats', 'Network fetch threw', netErr, { url });
+    return;
+  }
+
+  if (!resp.ok) {
+    L.w('URLhaus/stats', `HTTP ${resp.status} — skipping stats update`);
+    return;
+  }
+
+  let data;
+  try { data = await resp.json(); }
+  catch (parseErr) { L.e('URLhaus/stats', 'JSON parse failed', parseErr); return; }
+
+  L.i('URLhaus/stats', 'Response', data);
+
+  if (typeof data.total_urls === 'number') {
+    S.urlsTotal = data.total_urls;
+    L.i('URLhaus/stats', `total_urls = ${data.total_urls}`);
+  } else if (typeof data.total_urls_online === 'number') {
+    // fallback field name
+    S.urlsTotal = data.total_urls_online;
+    L.i('URLhaus/stats', `total_urls_online (fallback) = ${data.total_urls_online}`);
+  } else {
+    L.w('URLhaus/stats', 'No recognized total field found', {
+      keys: Object.keys(data),
+      values: data,
+    });
+  }
+}
+
+/* ══════════════════════════════════════════════
+   UPDATE DOM
+══════════════════════════════════════════════ */
+function updateUI() {
+  L.i('UI', 'Rendering state to DOM', {
+    sinceLunch: S.sinceLunch, online: S.urlsOnline, total: S.urlsTotal,
+  });
+
+  // Hero — "since lunch"
+  if (S.sinceLunch !== null) {
+    S.displaySince = S.sinceLunch;
+    document.getElementById('v-since').textContent = S.sinceLunch.toLocaleString();
+    const cutoffStr = lunchCutoff().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    document.getElementById('s-since').textContent =
+      `New malicious URLs submitted to URLhaus globally since ${cutoffStr} local time`;
+    startRoller();
+  } else {
+    document.getElementById('v-since').textContent = 'N/A';
+    document.getElementById('s-since').textContent = 'Feed unavailable — check DevTools console for details';
+    L.w('UI', 'sinceLunch is null, showing N/A');
+  }
+
+  // Active online
+  if (S.urlsOnline !== null) {
+    document.getElementById('v-online').textContent = S.urlsOnline.toLocaleString();
+    document.getElementById('s-online').textContent =
+      `of ${(S.recentUrls?.length ?? 0).toLocaleString()} in recent feed`;
+  } else {
+    document.getElementById('v-online').textContent = 'N/A';
+    document.getElementById('s-online').textContent = 'Unavailable';
+  }
+
+  // Total in DB
+  if (S.urlsTotal !== null) {
+    document.getElementById('v-total').textContent = Number(S.urlsTotal).toLocaleString();
+    document.getElementById('s-total').textContent = 'All-time submissions tracked';
+  } else {
+    document.getElementById('v-total').textContent = 'N/A';
+    document.getElementById('s-total').textContent = 'Stats endpoint unavailable';
+  }
+}
+
+/* ══════════════════════════════════════════════
+   REFRESH ORCHESTRATOR
+══════════════════════════════════════════════ */
+async function refresh() {
+  L.g('🔄 Refresh cycle', () => {
+    console.log('Time:',        new Date().toISOString());
+    console.log('Auth-Key:',    CFG.AUTH_KEY.slice(0,8) + '…[redacted]');
+    console.log('Prior state:', { sinceLunch: S.sinceLunch, urlsOnline: S.urlsOnline, urlsTotal: S.urlsTotal });
+  });
+
+  await Promise.allSettled([ fetchRecent(), fetchStats() ]);
+  updateUI();
+
+  S.nextRefresh = new Date(Date.now() + CFG.REFRESH_MS);
+  L.i('Scheduler', `Cycle complete. Next at ${S.nextRefresh.toLocaleTimeString()}`);
+
+  L.g('📊 State snapshot', () => {
+    console.log('sinceLunch:',  S.sinceLunch);
+    console.log('urlsOnline:',  S.urlsOnline);
+    console.log('urlsTotal:',   S.urlsTotal);
+    console.log('recentCount:', S.recentUrls?.length ?? null);
+    console.log('errors this session:', S.errors.length);
+    if (S.errors.length) console.log('All errors:', S.errors);
+  });
+}
+
+/* ══════════════════════════════════════════════
+   CLOCK
+══════════════════════════════════════════════ */
+setInterval(() => {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-US', { hour12: false });
+  if (S.nextRefresh) {
+    const diff = Math.max(0, S.nextRefresh - now);
+    const m = String(Math.floor(diff / 60000)).padStart(2, '0');
+    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+    document.getElementById('countdown').textContent = `${m}:${s}`;
+  }
+}, 1000);
+
+/* ══════════════════════════════════════════════
+   TICKER
+══════════════════════════════════════════════ */
+(function () {
+  const items = [
+    'Managed IT Services', '◆', 'Cybersecurity', '◆',
+    'Cloud & Backup', '◆', '24/7 Support', '◆',
+    'Network Design', '◆', 'IT Consulting', '◆',
+    'Automation & RMM', '◆', 'Data Recovery', '◆',
+  ];
+  const el = document.getElementById('ticker');
+  [...items, ...items].forEach(t => {
+    const s = document.createElement('span');
+    s.className = 'tick';
+    s.innerHTML = t === '◆' ? '<strong> ◆ </strong>' : t;
+    el.appendChild(s);
+  });
+})();
+
+/* ══════════════════════════════════════════════
+   BOOT
+══════════════════════════════════════════════ */
+L.i('Boot', 'iT.Inc sign starting', {
+  refreshEvery: `${CFG.REFRESH_MS / 60000} min`,
+  authKeyPrefix: CFG.AUTH_KEY.slice(0, 8) + '…',
+  lunchCutoff: lunchCutoff().toISOString(),
+  note: 'Inspect window.S at any time in DevTools for full internal state',
+});
+window.S = S;
+
+refresh();
+setInterval(refresh, CFG.REFRESH_MS);
+</script>
+</body>
+</html>
